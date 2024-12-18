@@ -3,7 +3,7 @@ import * as ecs from '@8thwall/ecs'
 ecs.registerComponent({
     name: 'coin',
     schema: {
-        coinId: ecs.string,  // Unique ID for each coin
+        coinId: ecs.string,  // Unique ID for each coin, this is string in case I want to use names for storytelliing later
     },
     schemaDefaults: {},
     data: {
@@ -11,7 +11,6 @@ ecs.registerComponent({
     },
     add: (world, component) => {
         const { eid, schemaAttribute } = component
-        localStorage.setItem('collectedCoins', JSON.stringify([]))
 
         const { coinId } = schemaAttribute.get(eid)
 
@@ -30,37 +29,24 @@ ecs.registerComponent({
                 collectedCoins.push(coinId)
                 localStorage.setItem('collectedCoins', JSON.stringify(collectedCoins))
 
-                // Dispatch an event to notify the game of the collection
-                world.events.dispatch(world.events.globalId, 'coinCollected', {
-                    collectedCoinsCount: collectedCoins.length,
-                })
-            }
-
-            // First animation: Scale to 0.5 with Elastic easing
-            ecs.ScaleAnimation.set(world, eid, {
-                autoFrom: true,
-                toX: 0.5,
-                toY: 0.5,
-                toZ: 0.5,
-                loop: false,
-                duration: 1500,
-                easeOut: true,
-                easingFunction: 'Elastic',
-            })
-
-            // Set a timeout to scale it down to zero after the animation completes
-            setTimeout(() => {
+                // First animation: Scale to 0 with Elastic easing
                 ecs.ScaleAnimation.set(world, eid, {
                     autoFrom: true,
                     toX: 0,
                     toY: 0,
                     toZ: 0,
                     loop: false,
-                    duration: 500,  // Shorter duration for the disappearance
+                    duration: 1500,
                     easeOut: true,
-                    easingFunction: 'Quad',
+                    easingFunction: 'Elastic',
                 })
-            }, 100)  // Match the first scale animation duration
+
+                // Dispatch an event to notify the game of the collection
+                world.events.dispatch(world.events.globalId, 'coinCollected', {
+                    collectedCoinsCount: collectedCoins.length,
+                    coin: coinId,
+                })
+            }
         }
 
         // Add the click event listener
